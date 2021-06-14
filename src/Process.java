@@ -27,7 +27,7 @@ public class Process implements Comparable<Process> {
     static void FIFOProcessScheduling(Queue<Process> readyQueue, Time currentTime) {
         Process executingProcess;
         if (!readyQueue.isEmpty()) {
-            executingProcess = readyQueue.poll();
+            executingProcess = readyQueue.peek();
             currentTime.clockingBeyondMinute(executingProcess.requiredTime);
             executingProcess.burstTime = 0;
 
