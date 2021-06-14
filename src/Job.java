@@ -65,8 +65,18 @@ public class Job {
         return memoryFlag && tapeFlag;
     }
 
-    static void checkArrival(Queue<Job> waitQueue,String currentTime) {
-//        currentTime.equals()
+    static boolean checkArrival(Queue<Job> waitQueue,Time currentTime) {
+        // 当前时间有作业到达，可以若等待队列队首的任务满足资源需求则可调入内存中（就绪队列）进行执行
+        if (waitQueue.peek().arriveTime.equals(currentTime)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static void FIFOjobScheduling(Queue<Job> waitQueue) {
+
+        Queue<Job> readyQueue = new LinkedList<>();
     }
 
     // hello
