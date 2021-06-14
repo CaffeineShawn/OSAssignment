@@ -14,4 +14,8 @@ public class Tape {
     public void assignTape(int assignTape) {
         this.free -= assignTape;
     }
+
+    public void releaseTape(int releaseTape) {
+        this.free += releaseTape;
+    }
 }

@@ -13,4 +13,8 @@ public class Memory {
     public void assignMemory(int assignMemory) {
         this.free -= assignMemory;
     }
+
+    public void releaseMemory(int releaseMemory) {
+        this.free += releaseMemory;
+    }
 }

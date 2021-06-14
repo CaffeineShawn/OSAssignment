@@ -8,6 +8,8 @@ public class Job {
     int requiredTape;
     int turnAroundTime;
     Time arriveTime;
+    static Memory memory;
+    static Tape tape;
 
     Job(int id, String  arriveTime, int estimatedTime, int requiredMemory, int requiredTape) {
         this.id = id;
@@ -18,6 +20,7 @@ public class Job {
     }
 
     public static void main(String[] args) {
+        Time currentTime = new Time("10:00");
         Job job1 = new Job(1, "10:20", 25, 15, 2);
         Job job2 = new Job(2, "10:25", 30, 60, 1);
         Job job3 = new Job(3, "10:30", 10, 50, 3);
@@ -39,7 +42,7 @@ public class Job {
     //  作业调动采用先来先服务算法和最小作业优先算法
     //  作业调度是高级调度，它的主要功能是根据一定的算法，从输入井中选中若干个作业，分配必要的资源，如主存、外设等，为它们建立初始状态为就绪的作业进程。
 
-    public boolean executeJob(Job job, Memory memory, Tape tape) {
+     static boolean resourceMeetsDemand(Job job) {
         // request Memory and Tape
         boolean memoryFlag = false;
         boolean tapeFlag = false;
@@ -65,8 +68,18 @@ public class Job {
         return memoryFlag && tapeFlag;
     }
 
+    static void assignResource(Job job) {
+        memory.assignMemory(job.requiredMemory);
+        tape.assignTape(job.requiredTape);
+    }
+
+    static void releaseResource(Job job) {
+        memory.releaseMemory(job.requiredMemory);
+        tape.releaseTape(job.requiredTape);
+    }
+
     static boolean checkArrival(Queue<Job> waitQueue,Time currentTime) {
-        // 当前时间有作业到达，可以若等待队列队首的任务满足资源需求则可调入内存中（就绪队列）进行执行
+        // 当前时间有作业到达，可以若等待队列队首的任务满足资源需求则可调入内存中（就绪队列）转化为进程执行
         if (waitQueue.peek().arriveTime.equals(currentTime)) {
             return true;
         } else {
@@ -74,9 +87,39 @@ public class Job {
         }
     }
 
-    static void FIFOjobScheduling(Queue<Job> waitQueue) {
+    static boolean checkArrival(Queue<Job> waitQueue,Time currentTime, int timeOffset) {
+        // 当前时间段有作业到达，可以若等待队列队首的任务满足资源需求则可调入内存中（就绪队列）转化为进程执行
+        if ((waitQueue.peek().arriveTime.minute < currentTime.minute + timeOffset) || (currentTime.minute + timeOffset % 60 == 1)) {
 
-        Queue<Job> readyQueue = new LinkedList<>();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static void FIFOJobScheduling(Queue<Job> waitQueue, Time currentTime) {
+
+        // 调入内存
+        Queue<Process> readyQueue = new LinkedList<>();
+        if (!waitQueue.isEmpty() && checkArrival(waitQueue, currentTime) && resourceMeetsDemand(waitQueue.peek())) {
+            Job currentExecutingJob = waitQueue.poll();
+            // 分配资源
+            assignResource(currentExecutingJob);
+            readyQueue.offer(Process.processify(currentExecutingJob));
+
+
+
+            Process.FIFOProcessScheduling(readyQueue,currentTime);
+            checkArrival(waitQueue, currentTime, readyQueue.peek().requiredTime);
+
+            releaseResource(currentExecutingJob);
+        }
+        // 开始FIFO？？
+
+        // 开始执行
+
+        currentTime.clockingByMinute();
+
     }
 
     // hello

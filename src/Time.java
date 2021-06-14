@@ -39,4 +39,18 @@ public class Time {
             this.minute++;
         }
     }
+
+    public void clockingBeyondMinute(int minutes) {
+        if (this.minute + minutes < 60) {
+            this.minute += minutes;
+        } else {
+            if (this.hour == 23) {
+                this.hour = 0;
+
+            } else {
+                this.hour++;
+            }
+            this.minute = (this.minute + minutes) % 60;
+        }
+    }
 }
