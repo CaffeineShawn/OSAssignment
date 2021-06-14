@@ -1,7 +1,7 @@
 import java.util.Queue;
 
 public class Process implements Comparable<Process> {
-    public String name;
+    public int id;
     public int burstTime;
     public int requiredTime;
     public Time arriveTime;
@@ -21,15 +21,16 @@ public class Process implements Comparable<Process> {
         Process process = new Process();
         process.requiredTime = process.burstTime = job.processTime;
         process.arriveTime = job.arriveTime;
+        process.id = job.id;
         return process;
     }
 
-    static void FIFOProcessScheduling(Queue<Process> readyQueue, Time currentTime) {
+    static void FIFOProcessScheduling(Queue<Process> readyQueue, Time currentTime,int givenTime) {
         Process executingProcess;
         if (!readyQueue.isEmpty()) {
             executingProcess = readyQueue.peek();
-            currentTime.clockingBeyondMinute(executingProcess.requiredTime);
-            executingProcess.burstTime = 0;
+            executingProcess.burstTime -= givenTime;
+            currentTime.clockingByMinute();
 
             // checkIfArrive是作业调度的功能
         }

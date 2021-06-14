@@ -1,11 +1,13 @@
 public class Time {
     int hour;
     int minute;
+    int allMinutes;
 
     Time(String time) {
         String[] timeString = time.split(":");
-        hour = Integer.parseInt(timeString[0]);
-        minute = Integer.parseInt(timeString[1]);
+        this.hour = Integer.parseInt(timeString[0]);
+        this.minute = Integer.parseInt(timeString[1]);
+        this.allMinutes = hour * 60 + minute;
     }
 
     @Override
@@ -38,6 +40,7 @@ public class Time {
         } else {
             this.minute++;
         }
+        this.allMinutes = hour * 60 + minute;
     }
 
     public void clockingBeyondMinute(int minutes) {
@@ -52,5 +55,24 @@ public class Time {
             }
             this.minute = (this.minute + minutes) % 60;
         }
+        this.allMinutes = hour * 60 + minute;
     }
+
+     static boolean largerThan(Time one,Time another) {
+        if (one.hour != another.hour) {
+            return one.hour - another.hour > 0;
+        } else {
+            return one.minute - another.minute > 0;
+        }
+
+    }
+
+    public void add(int minutes) {
+        if (this.minute + minutes >= 60) {
+            this.hour += 1;
+        }
+        this.minute = (this.minute + minutes) % 60;
+        this.allMinutes = hour * 60 + minute;
+    }
+
 }
