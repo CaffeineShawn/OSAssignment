@@ -67,15 +67,6 @@ public class Time {
         this.allMinutes = hour * 60 + minute;
     }
 
-     static boolean largerThan(Time one,Time another) {
-        if (one.hour != another.hour) {
-            return one.hour - another.hour > 0;
-        } else {
-            return one.minute - another.minute > 0;
-        }
-
-    }
-
     public void add(int minutes) {
         if (this.minute + minutes >= 60) {
             this.hour += 1;

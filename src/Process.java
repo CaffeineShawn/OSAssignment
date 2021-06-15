@@ -32,16 +32,10 @@ public class Process implements Comparable<Process> {
 
     }
 
-    Process(int burstTime) {
-        this.burstTime = burstTime;
-    }
-
     static Queue<Process> sortQueue(Queue<Process> queue) {
         PriorityQueue<Process> priorityQueue = new PriorityQueue<>();
-        
-        for (Process process : queue) {
-            priorityQueue.add(process);
-        }
+
+        priorityQueue.addAll(queue);
 
         Queue<Process> sortedQueue = new LinkedList<>();
         while (!priorityQueue.isEmpty()) {
@@ -51,7 +45,7 @@ public class Process implements Comparable<Process> {
         return sortedQueue;
     }
 
-    static int FIFOProcessScheduling(Queue<Process> readyQueue, Time currentTime,int givenTime) {
+    static int UniversalProcessScheduling(Queue<Process> readyQueue, Time currentTime, int givenTime) {
         Process executingProcess;
 
         if (readyQueue.peek().burstTime == readyQueue.peek().requiredTime) {
@@ -74,44 +68,44 @@ public class Process implements Comparable<Process> {
         return -1;
     }
 
-    static int SPFProcessScheduling(Queue<Process> readyQueue,Time currentTime, int givenTime) {
-        Process executingProcess;
+//    static int SPFProcessScheduling(Queue<Process> readyQueue,Time currentTime, int givenTime) {
+//        Process executingProcess;
+//
+//        if (readyQueue.peek().burstTime == readyQueue.peek().requiredTime) {
+//            readyQueue.peek().startTime = new Time(currentTime.allMinutes);
+//        }
+//
+//        if (readyQueue.size() == 1) {
+//            executingProcess = readyQueue.peek();
+//            executingProcess.burstTime -= givenTime;
+//            currentTime.clockingBeyondMinute(givenTime);
+//
+//            // checkIfArrive是作业调度的功能
+//        } else if (readyQueue.size() > 1) {
+//            //executingProcess = readyQueue
+//            readyQueue = sortQueue(readyQueue);
+//
+//            if (readyQueue.peek().burstTime == readyQueue.peek().requiredTime) {
+//                readyQueue.peek().startTime = new Time(currentTime.allMinutes);
+//            }
+//
+//            executingProcess = readyQueue.peek();
+//            executingProcess.burstTime -= givenTime;
+//            currentTime.clockingBeyondMinute(givenTime);
+//
+//
+//        }
+//
+//        if (readyQueue.peek().burstTime == 0) {
+//
+//            return readyQueue.peek().id-1;
+//        }
+//        return -1;
+//    }
 
-        if (readyQueue.peek().burstTime == readyQueue.peek().requiredTime) {
-            readyQueue.peek().startTime = new Time(currentTime.allMinutes);
-        }
-
-        if (readyQueue.size() == 1) {
-            executingProcess = readyQueue.peek();
-            executingProcess.burstTime -= givenTime;
-            currentTime.clockingBeyondMinute(givenTime);
-
-            // checkIfArrive是作业调度的功能
-        } else if (readyQueue.size() > 1) {
-            //executingProcess = readyQueue
-            readyQueue = sortQueue(readyQueue);
-
-            if (readyQueue.peek().burstTime == readyQueue.peek().requiredTime) {
-                readyQueue.peek().startTime = new Time(currentTime.allMinutes);
-            }
-
-            executingProcess = readyQueue.peek();
-            executingProcess.burstTime -= givenTime;
-            currentTime.clockingBeyondMinute(givenTime);
-
-
-        }
-
-        if (readyQueue.peek().burstTime == 0) {
-
-            return readyQueue.peek().id-1;
-        }
-        return -1;
-    }
-
-    static void processExecute(Process process,int givenTime) {
-        process.burstTime -= givenTime;
-    }
+//    static void processExecute(Process process,int givenTime) {
+//        process.burstTime -= givenTime;
+//    }
 
 
     public static void main(String[] args) {

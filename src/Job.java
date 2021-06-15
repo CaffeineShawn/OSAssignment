@@ -215,7 +215,7 @@ public class Job{
         if (choice2 == 2) {
             readyQueue = Process.sortQueue(readyQueue);
         }
-        Process.FIFOProcessScheduling(readyQueue, currentTime, givenTime);
+        Process.UniversalProcessScheduling(readyQueue, currentTime, givenTime);
         return readyQueue;
     }
 
@@ -230,7 +230,7 @@ public class Job{
     }
 
     private static void processSchedulingWithResourceRelease(LinkedList<Job> waitQueue, Time currentTime, Job[] jobs, Queue<Process> readyQueue, int givenTime) {
-        int releaseJobId = Process.FIFOProcessScheduling(readyQueue, currentTime, givenTime);
+        int releaseJobId = Process.UniversalProcessScheduling(readyQueue, currentTime, givenTime);
         if (releaseJobId != -1)  {
             System.out.println("- 作业" + releaseJobId + "于时间" + currentTime + "执行完毕，释放占用资源");
             Job finishedJob = findJobById(jobs,releaseJobId);
