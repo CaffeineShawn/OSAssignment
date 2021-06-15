@@ -68,8 +68,8 @@ public class Process implements Comparable<Process> {
         }
 
         if (readyQueue.peek().burstTime == 0) {
-            // readyQueue.peek().finishedTime = currentTime;
-            return readyQueue.peek().id-1;
+
+            return readyQueue.peek().id;
         }
         return -1;
     }
