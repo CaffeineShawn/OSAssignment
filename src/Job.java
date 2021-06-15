@@ -1,6 +1,4 @@
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class Job implements Comparable<Job>{
     int id;
@@ -8,6 +6,7 @@ public class Job implements Comparable<Job>{
     int requiredMemory;
     int requiredTape;
     int turnAroundTime;
+    Time startTime;
     Time finishedTime;
     Time arriveTime;
     static Memory memory = new Memory(100);
@@ -30,7 +29,7 @@ public class Job implements Comparable<Job>{
 
     @Override
     public String toString() {
-        return "作业" + this.id +", 到达时间:" + this.arriveTime + ", 结束时间:" + this.finishedTime;
+        return "作业" + this.id +", 到达时间:" + this.arriveTime +", 开始时间:" + this.startTime + ", 结束时间:" + this.finishedTime + ", 周转时间:" + (this.finishedTime.allMinutes - this.arriveTime.allMinutes) ;
     }
 
     public static void main(String[] args) {
@@ -54,7 +53,29 @@ public class Job implements Comparable<Job>{
         for (Job job : jobs) {
             waitQueue.offer(job);
         }
-        FIFOJobScheduling(waitQueue,currentTime,jobs);
+        Scanner sc = new Scanner(System.in);
+        System.out.printf("choice: ");
+        int choice = sc.nextInt();
+
+        if (choice == 1) {
+            FIFOJobScheduling(waitQueue, currentTime, jobs);
+        } else if (choice == 2){
+            SJFJobScheduling(waitQueue,currentTime,jobs);
+        }
+
+
+//        FIFOJobScheduling(waitQueue,currentTime,jobs);
+//        SJFJobScheduling(waitQueue,currentTime,jobs);
+
+
+        double turnAroundTime = 0;
+
+        for (Job job : jobs) {
+            System.out.println(job);
+            turnAroundTime += (double) (job.finishedTime.allMinutes - job.arriveTime.allMinutes);
+        }
+
+        System.out.println("平均周转时间为: " +turnAroundTime / (jobs.length));
 
 
     }
@@ -70,19 +91,19 @@ public class Job implements Comparable<Job>{
         // checkMemory()
         if (memory.checkMemory(job.requiredMemory)) {
 
-            System.out.println("作业" + job.id + "满足内存需求");
+//            System.out.println("- 作业" + job.id + "满足内存需求");
             memoryFlag = true;
         } else {
-            System.out.println("作业" + job.id + "不满足内存需求");
+//            System.out.println("- 作业" + job.id + "不满足内存需求");
         }
 
         // checkTape()
         if (tape.checkTape(job.requiredTape)) {
 
-            System.out.println("作业" + job.id + "满足磁带机需求");
+//            System.out.println("- 作业" + job.id + "满足磁带机需求");
             tapeFlag = true;
         } else {
-            System.out.println("作业" + job.id + "不满足磁带机需求");
+//            System.out.println("- 作业" + job.id + "不满足磁带机需求");
         }
 
         return memoryFlag && tapeFlag;
@@ -132,6 +153,9 @@ public class Job implements Comparable<Job>{
 
 
 
+
+
+
     static void FIFOJobScheduling(LinkedList<Job> waitQueue, Time currentTime,Job[] jobs) {
 
         // 调入内存
@@ -140,29 +164,48 @@ public class Job implements Comparable<Job>{
         while (!waitQueue.isEmpty() || !readyQueue.isEmpty()){
 
             System.out.println("-------当前时间为" + currentTime+"-------");
-            System.out.print("当前内存中作业: ");
+            System.out.println(tape);
+            System.out.println(memory);
+            System.out.print("- 当前内存中作业: ");
             for (Process process : readyQueue) {
                 System.out.print(process.job + "\t");
             }
             System.out.print("\n");
+            for (Job job : waitQueue) {
+                if (resourceMeetsDemand(job) && job.arriveTime.allMinutes <= currentTime.allMinutes) {
+                    assignResource(job);
+                    System.out.println("- 作业" + job.id + "于时间" + currentTime + "进入就绪队列");
+//                    job.startTime = new Time(currentTime.allMinutes);
+                    readyQueue.offer(Process.processify(job));
+                    waitQueue.removeFirstOccurrence(job);
+                    break;
+                } else if (job.arriveTime.allMinutes > currentTime.allMinutes) {
+                    break;
+                }
+
+            }
+
 
             if (!readyQueue.isEmpty()) {
                 Time nextCriticalTime = nextCriticalTime(waitQueue, currentTime);
                 int givenTime = Integer.min(nextCriticalTime.allMinutes - currentTime.allMinutes, readyQueue.peek().burstTime);
                 int releaseJobIndex = Process.FIFOProcessScheduling(readyQueue, currentTime, givenTime);
                 if (releaseJobIndex == -1) {
-                    ;
                 } else {
-                    System.out.println("作业" + (releaseJobIndex + 1) + "执行完毕，释放占用资源");
+                    System.out.println("- 作业" + (releaseJobIndex + 1) + "于时间" + currentTime + "执行完毕，释放占用资源");
                     jobs[releaseJobIndex].finishedTime = new Time(currentTime.allMinutes);
+                    jobs[releaseJobIndex].startTime = new Time(readyQueue.poll().startTime.allMinutes) ;
                     releaseResource(jobs[releaseJobIndex]);
+                    System.out.println(tape);
+                    System.out.println(memory);
                     releaseJobIndex = -1;
                 }
 
                 for (Job job : waitQueue) {
                     if (resourceMeetsDemand(job) && job.arriveTime.allMinutes <= currentTime.allMinutes) {
                         assignResource(job);
-                        System.out.println("作业" + job.id + "已进入就绪队列");
+                        System.out.println("- 作业" + job.id + "于时间" + currentTime + "进入就绪队列");
+//                        job.startTime = new Time(currentTime.allMinutes);
                         readyQueue.offer(Process.processify(job));
                         waitQueue.removeFirstOccurrence(job);
                         break;
@@ -176,7 +219,8 @@ public class Job implements Comparable<Job>{
                 for (Job job : waitQueue) {
                     if (resourceMeetsDemand(job) && job.arriveTime.allMinutes <= currentTime.allMinutes) {
                         assignResource(job);
-                        System.out.println("作业" + job.id + "已进入就绪队列");
+                        System.out.println("- 作业" + job.id + "于时间" + currentTime + "进入就绪队列");
+//                        job.startTime = new Time(currentTime.allMinutes);
                         readyQueue.offer(Process.processify(job));
                         waitQueue.removeFirstOccurrence(job);
                         break;
@@ -187,28 +231,121 @@ public class Job implements Comparable<Job>{
                 }
                 Time nextCriticalTime = nextCriticalTime(waitQueue, currentTime);
                 int givenTime = Integer.min(nextCriticalTime.allMinutes - currentTime.allMinutes, readyQueue.peek().burstTime);
+                jobs[readyQueue.peek().id - 1].startTime = currentTime;
                 Process.FIFOProcessScheduling(readyQueue, currentTime, givenTime);
             }
 
-
-
-
-
-
-
-
-            System.out.println("-------当前时间为" + currentTime+"-------\n\n");
+            System.out.println("-------时间段截止" + currentTime+"-------\n\n");
 
         }
         // 开始FIFO？？
 
         // 开始执行
 
-        for (Job job : jobs) {
-            System.out.println(job);
-        }
+
 
     }
+
+
+    static void SJFJobScheduling(LinkedList<Job> waitQueue, Time currentTime,Job[] jobs) {
+
+        // 调入内存
+
+        PriorityQueue<Process> readyQueue = new PriorityQueue<>();
+        while (!waitQueue.isEmpty() || !readyQueue.isEmpty()){
+
+            System.out.println("-------当前时间为" + currentTime+"-------");
+            System.out.println(tape);
+            System.out.println(memory);
+
+            for (Job job : waitQueue) {
+                if (resourceMeetsDemand(job) && job.arriveTime.allMinutes <= currentTime.allMinutes) {
+                    assignResource(job);
+                    System.out.println("- 作业" + job.id + "于时间" + currentTime + "进入就绪队列");
+                    job.startTime = new Time(currentTime.allMinutes);
+                    readyQueue.offer(Process.processify(job));
+                    waitQueue.removeFirstOccurrence(job);
+                    break;
+                } else if (job.arriveTime.allMinutes > currentTime.allMinutes) {
+                    break;
+                }
+
+            }
+
+            System.out.print("- 当前内存中作业: ");
+            for (Process process : readyQueue) {
+                System.out.print(process.job + "\t");
+            }
+            System.out.print("\n");
+
+
+
+
+            if (!readyQueue.isEmpty()) {
+                Time nextCriticalTime = nextCriticalTime(waitQueue, currentTime);
+                int givenTime = Integer.min(nextCriticalTime.allMinutes - currentTime.allMinutes, readyQueue.peek().burstTime);
+                int releaseJobIndex = Process.SPFProcessScheduling(readyQueue, currentTime, givenTime);
+                if (releaseJobIndex == -1) {
+                } else {
+                    System.out.println("- 作业" + (releaseJobIndex + 1) + "于时间" + currentTime + "执行完毕，释放占用资源");
+                    jobs[releaseJobIndex].finishedTime = new Time(currentTime.allMinutes);
+                    jobs[releaseJobIndex].startTime = new Time(readyQueue.poll().startTime.allMinutes) ;
+                    releaseResource(jobs[releaseJobIndex]);
+
+                    System.out.println(tape);
+                    System.out.println(memory);
+                    releaseJobIndex = -1;
+                }
+
+                for (Job job : waitQueue) {
+                    if (resourceMeetsDemand(job) && job.arriveTime.allMinutes <= currentTime.allMinutes) {
+                        assignResource(job);
+                        System.out.println("- 作业" + job.id + "于时间" + currentTime + "进入就绪队列");
+//                        job.startTime = new Time(currentTime.allMinutes);
+                        readyQueue.offer(Process.processify(job));
+                        waitQueue.removeFirstOccurrence(job);
+                        break;
+                    } else if (job.arriveTime.allMinutes > currentTime.allMinutes) {
+                        break;
+                    }
+
+                }
+
+            } else {
+                for (Job job : waitQueue) {
+                    if (resourceMeetsDemand(job) && job.arriveTime.allMinutes <= currentTime.allMinutes) {
+                        assignResource(job);
+                        System.out.println("- 作业" + job.id + "于时间" + currentTime + "进入就绪队列");
+//                        job.startTime = new Time(currentTime.allMinutes);
+                        readyQueue.offer(Process.processify(job));
+                        waitQueue.removeFirstOccurrence(job);
+                        break;
+                    } else if (job.arriveTime.allMinutes > currentTime.allMinutes) {
+                        break;
+                    }
+
+                }
+                Time nextCriticalTime = nextCriticalTime(waitQueue, currentTime);
+                int givenTime = Integer.min(nextCriticalTime.allMinutes - currentTime.allMinutes, readyQueue.peek().burstTime);
+                jobs[readyQueue.peek().id - 1].startTime = currentTime;
+                Process.SPFProcessScheduling(readyQueue, currentTime, givenTime);
+            }
+
+            System.out.println("-------时间段截止" + currentTime+"-------\n\n");
+
+        }
+        // 开始FIFO？？
+
+        // 开始执行
+
+
+
+    }
+
+
+
+
+
 
     // hello
 }

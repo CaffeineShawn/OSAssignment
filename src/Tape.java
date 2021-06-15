@@ -19,4 +19,9 @@ public class Tape {
     public void releaseTape(int releaseTape) {
         this.free += releaseTape;
     }
+
+    @Override
+    public String toString() {
+        return "- 共有" + total + "台磁带机, 当前空闲" + free + "台";
+    }
 }
