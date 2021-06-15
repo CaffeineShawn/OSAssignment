@@ -4,10 +4,11 @@ public class Memory {
 
     Memory(int total) {
         this.total = total;
+        this.free = total;
     }
 
     public boolean checkMemory(int requiredMemory) {
-        return requiredMemory >= this.free;
+        return requiredMemory <= this.free;
     }
 
     public void assignMemory(int assignMemory) {

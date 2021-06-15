@@ -2,10 +2,11 @@ import java.util.Queue;
 
 public class Process implements Comparable<Process> {
     public int id;
+    public String job;
     public int burstTime;
     public int requiredTime;
     public Time arriveTime;
-    public int finishedTime = -1;
+    public Time finishedTime = null;
 
     @Override
     public int compareTo(Process other) {
@@ -21,19 +22,28 @@ public class Process implements Comparable<Process> {
         Process process = new Process();
         process.requiredTime = process.burstTime = job.processTime;
         process.arriveTime = job.arriveTime;
+        process.job = "job" + (job.id);
         process.id = job.id;
         return process;
     }
 
-    static void FIFOProcessScheduling(Queue<Process> readyQueue, Time currentTime,int givenTime) {
+    static int FIFOProcessScheduling(Queue<Process> readyQueue, Time currentTime,int givenTime) {
         Process executingProcess;
+
         if (!readyQueue.isEmpty()) {
             executingProcess = readyQueue.peek();
             executingProcess.burstTime -= givenTime;
-            currentTime.clockingByMinute();
+            currentTime.clockingBeyondMinute(givenTime);
 
             // checkIfArrive是作业调度的功能
         }
+
+        if (readyQueue.peek().burstTime == 0) {
+            // readyQueue.peek().finishedTime = currentTime;
+            return readyQueue.poll().id-1;
+        }
+
+        return -1;
 
 
     }

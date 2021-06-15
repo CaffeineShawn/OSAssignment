@@ -10,10 +10,19 @@ public class Time {
         this.allMinutes = hour * 60 + minute;
     }
 
-    @Override
-    public String toString() {
-        return this.hour + ":" + this.minute;
+    Time(int hour, int minute) {
+        this.hour = hour;
+        this.minute = minute;
+        this.allMinutes = 60 * hour + minute;
     }
+
+    Time(int allMinutes) {
+        this.hour = allMinutes / 60;
+        this.minute = allMinutes % 60;
+        this.allMinutes = allMinutes;
+    }
+
+
 
     @Override
     public boolean equals(Object obj) {
@@ -73,6 +82,11 @@ public class Time {
         }
         this.minute = (this.minute + minutes) % 60;
         this.allMinutes = hour * 60 + minute;
+    }
+
+    @Override
+    public String toString() {
+        return this.hour + ":" + (this.minute < 10 ? "0" + this.minute : this.minute);
     }
 
 }
