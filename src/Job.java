@@ -5,7 +5,6 @@ public class Job{
     int processTime;
     int requiredMemory;
     int requiredTape;
-    int turnAroundTime;
     Time startTime;
     Time finishedTime;
     Time arriveTime;
@@ -53,37 +52,27 @@ public class Job{
             waitQueue.offer(job);
         }
         Scanner sc = new Scanner(System.in);
-        System.out.printf("choice1: ");
+        System.out.print("choice1: ");
         choice1 = sc.nextInt();
 
 
-        System.out.printf("choice2: ");
+        System.out.print("choice2: ");
         choice2 = sc.nextInt();
 
         if (choice1 == 1) {
-            Arrays.sort(jobs, new Comparator<Job>() {
-                @Override
-                public int compare(Job o1, Job o2) {
-                    return o1.arriveTime.allMinutes - o2.arriveTime.allMinutes;
-                }
-            });
+            Arrays.sort(jobs, Comparator.comparingInt(o -> o.arriveTime.allMinutes));
         }
         else if (choice1 == 2) {
-            Arrays.sort(jobs, new Comparator<Job>() {
-                @Override
-                public int compare(Job o1, Job o2) {
-                    return o1.processTime - o2.processTime;
-                }
-            });
+            Arrays.sort(jobs, Comparator.comparingInt(o -> o.processTime));
         }
 
 
-        if (choice1 == 1) {
-            FIFOJobScheduling(waitQueue, currentTime, jobs);
-        } else if (choice1 == 2) {
-            SJFJobScheduling(waitQueue, currentTime, jobs);
-        }
-
+//        if (choice1 == 1) {
+//            UniversalJobScheduling(waitQueue, currentTime, jobs);
+//        } else if (choice1 == 2) {
+//            UniversalJobScheduling(waitQueue, currentTime, jobs);
+//        }
+        UniversalJobScheduling(waitQueue, currentTime, jobs);
 
 
 
@@ -97,16 +86,11 @@ public class Job{
         double turnAroundTime = 0;
 
 
-        Arrays.sort(jobs, new Comparator<Job>() {
-            @Override
-            public int compare(Job o1, Job o2) {
-                return o1.id - o2.id;
-            }
-        });
+        Arrays.sort(jobs, Comparator.comparingInt(o -> o.id));
 
         for (Job job : jobs) {
             System.out.println(job);
-            turnAroundTime += (double) (job.finishedTime.allMinutes - job.arriveTime.allMinutes);
+            turnAroundTime += job.finishedTime.allMinutes - job.arriveTime.allMinutes;
         }
 
         System.out.println("平均周转时间为: " + turnAroundTime / (jobs.length));
@@ -127,18 +111,16 @@ public class Job{
 
 //            System.out.println("- 作业" + job.id + "满足内存需求");
             memoryFlag = true;
-        } else {
-//            System.out.println("- 作业" + job.id + "不满足内存需求");
-        }
+        }  //            System.out.println("- 作业" + job.id + "不满足内存需求");
+
 
         // checkTape()
         if (tape.checkTape(job.requiredTape)) {
 
 //            System.out.println("- 作业" + job.id + "满足磁带机需求");
             tapeFlag = true;
-        } else {
-//            System.out.println("- 作业" + job.id + "不满足磁带机需求");
-        }
+        }  //            System.out.println("- 作业" + job.id + "不满足磁带机需求");
+
 
         return memoryFlag && tapeFlag;
     }
@@ -153,14 +135,14 @@ public class Job{
         tape.releaseTape(job.requiredTape);
     }
 
-    static boolean checkArrival(Queue<Job> waitQueue, Time currentTime) {
-        // 当前时间有作业到达，可以若等待队列队首的任务满足资源需求则可调入内存中（就绪队列）转化为进程执行
-        if (waitQueue.peek().arriveTime.allMinutes == currentTime.allMinutes) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+//    static boolean checkArrival(Queue<Job> waitQueue, Time currentTime) {
+//        // 当前时间有作业到达，可以若等待队列队首的任务满足资源需求则可调入内存中（就绪队列）转化为进程执行
+//        if (waitQueue.peek().arriveTime.allMinutes == currentTime.allMinutes) {
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
 
     static Time nextCriticalTime(Queue<Job> waitQueue, Time currentTime) {
         int allMinutes = Integer.MAX_VALUE;
@@ -171,38 +153,21 @@ public class Job{
                 allMinutes = job.arriveTime.allMinutes;
             }
         }
-        Time nextCriticalTime = new Time(allMinutes);
-        return nextCriticalTime;
+        return new Time(allMinutes);
     }
 
-    static boolean checkArrival(Queue<Job> waitQueue, Time currentTime, int timeOffset) {
-        // 当前时间段有作业到达，可以若等待队列队首的任务满足资源需求则可调入内存中（就绪队列）转化为进程执行
-        if ((waitQueue.peek().arriveTime.minute < currentTime.minute + timeOffset) || (currentTime.minute + timeOffset % 60 == 1)) {
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-
-    static Queue<Process> sortQueue(Queue<Process> queue) {
-        PriorityQueue<Process> priorityQueue = new PriorityQueue<>();
-
-        for (Process process : queue) {
-            priorityQueue.add(process);
-        }
-
-        Queue<Process> sortedQueue = new LinkedList<>();
-        while (!priorityQueue.isEmpty()) {
-            sortedQueue.offer(priorityQueue.poll());
-        }
-
-        return sortedQueue;
-    }
+//    static boolean checkArrival(Queue<Job> waitQueue, Time currentTime, int timeOffset) {
+//        // 当前时间段有作业到达，可以若等待队列队首的任务满足资源需求则可调入内存中（就绪队列）转化为进程执行
+//        if ((waitQueue.peek().arriveTime.minute < currentTime.minute + timeOffset) || (currentTime.minute + timeOffset % 60 == 1)) {
+//
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
 
 
-    static void FIFOJobScheduling(LinkedList<Job> waitQueue, Time currentTime, Job[] jobs) {
+    static void UniversalJobScheduling(LinkedList<Job> waitQueue, Time currentTime, Job[] jobs) {
 
         // 调入内存
 
@@ -212,7 +177,7 @@ public class Job{
             System.out.println("-------当前时间为" + currentTime + "-------");
             System.out.println(tape);
             System.out.println(memory);
-            job2Process((LinkedList<Job>) waitQueue, currentTime, readyQueue);
+            job2Process(waitQueue, currentTime, readyQueue);
             System.out.print("- 当前内存中作业: ");
             for (Process process : readyQueue) {
                 System.out.print(process.job + "\t");
@@ -226,10 +191,10 @@ public class Job{
                 if (choice2 == 2) {
                     readyQueue = Process.sortQueue(readyQueue);
                 }
-                processSchedulingWithResourceRelease((LinkedList<Job>) waitQueue, currentTime, jobs, readyQueue, givenTime);
+                processSchedulingWithResourceRelease(waitQueue, currentTime, jobs, readyQueue, givenTime);
 
             } else {
-                readyQueue = processScheduling((LinkedList<Job>) waitQueue, currentTime, jobs, readyQueue);
+                readyQueue = processScheduling(waitQueue, currentTime, jobs, readyQueue);
             }
 
             System.out.println("-------时间段截止" + currentTime + "-------\n\n");
@@ -266,8 +231,7 @@ public class Job{
 
     private static void processSchedulingWithResourceRelease(LinkedList<Job> waitQueue, Time currentTime, Job[] jobs, Queue<Process> readyQueue, int givenTime) {
         int releaseJobId = Process.FIFOProcessScheduling(readyQueue, currentTime, givenTime);
-        if (releaseJobId == -1) {
-        } else {
+        if (releaseJobId != -1)  {
             System.out.println("- 作业" + releaseJobId + "于时间" + currentTime + "执行完毕，释放占用资源");
             Job finishedJob = findJobById(jobs,releaseJobId);
             finishedJob.finishedTime = new Time(currentTime.allMinutes);
@@ -276,10 +240,9 @@ public class Job{
 
             System.out.println(tape);
             System.out.println(memory);
-            releaseJobId = -1;
         }
 
-        job2Process((LinkedList<Job>) waitQueue, currentTime, readyQueue);
+        job2Process(waitQueue, currentTime, readyQueue);
     }
 
     private static void job2Process(LinkedList<Job> waitQueue, Time currentTime, Queue<Process> readyQueue) {
@@ -326,49 +289,49 @@ public class Job{
 
 
 
-    static void SJFJobScheduling(LinkedList<Job> waitQueue, Time currentTime, Job[] jobs) {
-
-        // 调入内存
-
-        Queue<Process> readyQueue = new LinkedList<>();
-        while (!waitQueue.isEmpty() || !readyQueue.isEmpty()) {
-
-            System.out.println("-------当前时间为" + currentTime + "-------");
-            System.out.println(tape);
-            System.out.println(memory);
-
-            //waitQueue = SJFwaitQueue(waitQueue, currentTime);
-            job2Process((LinkedList<Job>) waitQueue, currentTime, readyQueue);
-
-            System.out.print("- 当前内存中作业: ");
-            for (Process process : readyQueue) {
-                System.out.print(process.job + "\t");
-            }
-            System.out.print("\n");
-
-
-            if (!readyQueue.isEmpty()) {
-                Time nextCriticalTime = nextCriticalTime(waitQueue, currentTime);
-                int givenTime = Integer.min(nextCriticalTime.allMinutes - currentTime.allMinutes, readyQueue.peek().burstTime);
-                if (choice2 == 2) {
-                    readyQueue = Process.sortQueue(readyQueue);
-                }
-
-                processSchedulingWithResourceRelease((LinkedList<Job>) waitQueue, currentTime, jobs, readyQueue, givenTime);
-
-            } else {
-                readyQueue = processScheduling((LinkedList<Job>) waitQueue, currentTime, jobs, readyQueue);
-            }
-
-            System.out.println("-------时间段截止" + currentTime + "-------\n\n");
-
-        }
-        // 开始FIFO？？
-
-        // 开始执行
-
-
-    }
+//    static void UniversalJobScheduling(LinkedList<Job> waitQueue, Time currentTime, Job[] jobs) {
+//
+//        // 调入内存
+//
+//        Queue<Process> readyQueue = new LinkedList<>();
+//        while (!waitQueue.isEmpty() || !readyQueue.isEmpty()) {
+//
+//            System.out.println("-------当前时间为" + currentTime + "-------");
+//            System.out.println(tape);
+//            System.out.println(memory);
+//
+//            //waitQueue = SJFwaitQueue(waitQueue, currentTime);
+//            job2Process((LinkedList<Job>) waitQueue, currentTime, readyQueue);
+//
+//            System.out.print("- 当前内存中作业: ");
+//            for (Process process : readyQueue) {
+//                System.out.print(process.job + "\t");
+//            }
+//            System.out.print("\n");
+//
+//
+//            if (!readyQueue.isEmpty()) {
+//                Time nextCriticalTime = nextCriticalTime(waitQueue, currentTime);
+//                int givenTime = Integer.min(nextCriticalTime.allMinutes - currentTime.allMinutes, readyQueue.peek().burstTime);
+//                if (choice2 == 2) {
+//                    readyQueue = Process.sortQueue(readyQueue);
+//                }
+//
+//                processSchedulingWithResourceRelease((LinkedList<Job>) waitQueue, currentTime, jobs, readyQueue, givenTime);
+//
+//            } else {
+//                readyQueue = processScheduling((LinkedList<Job>) waitQueue, currentTime, jobs, readyQueue);
+//            }
+//
+//            System.out.println("-------时间段截止" + currentTime + "-------\n\n");
+//
+//        }
+//        // 开始FIFO？？
+//
+//        // 开始执行
+//
+//
+//    }
 
 //    public Job findByProcess(Process process) {
 //
