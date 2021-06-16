@@ -1,19 +1,41 @@
+import java.util.LinkedList;
+
 public class Memory {
     int total;
     int free;
+    LinkedList<Partition> partitionLinkedList = new LinkedList<>();
+            
+    
 
 
     Memory(int total) {
         this.total = total;
         this.free = total;
+        this.partitionLinkedList = new LinkedList<>();
+        partitionLinkedList.offer(new Partition(total, 0));
     }
 
     public boolean checkMemory(int requiredMemory) {
-        return requiredMemory <= this.free;
+        if (requiredMemory < this.free) {
+            return false;
+        }
+        for (Partition partition : partitionLinkedList) {
+            if (partition.partitionSize >= requiredMemory) {
+                return true;
+            }
+        }
+        return false;
+        
     }
-
+    
     public void assignMemory(int assignMemory) {
+
+        for (Partition partition : partitionLinkedList) {
+            
+        }
         this.free -= assignMemory;
+        
+        
     }
 
     public void releaseMemory(int releaseMemory) {

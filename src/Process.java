@@ -9,6 +9,7 @@ public class Process implements Comparable<Process> {
     public Time arriveTime;
 
 
+
     @Override
     public int compareTo(Process other) {
         return this.burstTime - other.burstTime;
