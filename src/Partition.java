@@ -4,9 +4,9 @@ import java.util.Scanner;
 
 public class Partition implements Comparable<Partition> {
     public static void main(String[] args) {
-//        // 直接输入预先测试用例，可写在testExample的开头
-//        Scanner sc = new Scanner(System.in);
-//
+        // 直接输入预先测试用例，可写在testExample的开头
+        Scanner sc = new Scanner(System.in);
+
 //        // 选择分区置换算法
 //        int algorithmSelection = 0;
 //        while (algorithmSelection != 1  && algorithmSelection != 2) {
@@ -14,26 +14,28 @@ public class Partition implements Comparable<Partition> {
 //            algorithmSelection = sc.nextInt();
 //        }
 //        System.out.println("You have chosen:" + (algorithmSelection - 1 == 0 ? "first-fit" : "best-fit") );
-//
-//        // 初始化分区起始地址
-//        System.out.print("请输入分区的起始地址:");
-//        int startAddress = sc.nextInt();
-//
-//        // 初始化分区及进程
-//        LinkedList<Partition> partitionLinkedList = new LinkedList<>();
-//        LinkedList<Job> jobs = new LinkedList<>();
-//        System.out.print("请输入分区的大小:");
-//        partitionLinkedList.add(new Partition(sc.nextInt(), startAddress));
-//
-//        // 展示一下分区
-//        for (Partition partition : partitionLinkedList) {
-//            System.out.println(partition.toString());
-//        }
-//
-//
+
+
+
+        // 初始化分区起始地址
+        System.out.print("请输入分区的起始地址:");
+        int startAddress = sc.nextInt();
+
+        // 初始化分区及进程
+        LinkedList<Partition> partitionLinkedList = new LinkedList<>();
+        LinkedList<Process> processes = new LinkedList<>();
+        System.out.print("请输入分区的大小:");
+        partitionLinkedList.add(new Partition(sc.nextInt(), startAddress));
+
+        // 展示一下分区
+        for (Partition partition : partitionLinkedList) {
+            System.out.println(partition.toString());
+        }
+
+//        FirstFitPartition(partitionLinkedList,job);
 //        // 初始化作业号为1
 //        int processId = 1;
-//
+
 //        boolean looping = true;
 //        while (looping) {
 //            System.out.print("1 for alloc, 2 for release, 3 for exit:");
@@ -76,8 +78,7 @@ public class Partition implements Comparable<Partition> {
     }
 
     int partitionSize;
-    int startAddress;
-
+    int startAddress=0;
     Job job = null;
     boolean assigned = false;
 
@@ -85,8 +86,6 @@ public class Partition implements Comparable<Partition> {
     Partition(int partitionSize, int startAddress) {
         this.startAddress = startAddress;
         this.partitionSize = partitionSize;
-
-
     }
 
     @Override
@@ -103,6 +102,19 @@ public class Partition implements Comparable<Partition> {
     @Override
     public int compareTo(Partition o) {
         return -this.partitionSize + o.partitionSize;
+    }
+
+    static boolean checkMemoryPartition(LinkedList<Partition> partitionLinkedList, int requiredMemory) {
+        for (Partition partition : partitionLinkedList) {
+            if (partition.partitionSize >= requiredMemory) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static void assignMemoryPartition(LinkedList<Partition> partitionLinkedList, Job job) {
+        FirstFitPartition(partitionLinkedList, job);
     }
 
 
@@ -127,9 +139,9 @@ public class Partition implements Comparable<Partition> {
         }
     }
 
-    static void FirstFitPartition(LinkedList<Partition> partitionLinkedList, Job job) {
+    static boolean FirstFitPartition(LinkedList<Partition> partitionLinkedList, Job job) {
         // 首次适应算法
-        boolean assignSuccess = false;
+
 
 
         for (Partition currentPartition : partitionLinkedList) {
@@ -140,23 +152,24 @@ public class Partition implements Comparable<Partition> {
                 Partition newPartition = new Partition(currentPartition.partitionSize - job.requiredMemory, currentPartition.startAddress + job.requiredMemory);
                 currentPartition.partitionSize = job.requiredMemory;
                 currentPartition.assigned = true;
+
                 currentPartition.job = job;
-                assignSuccess = true;
+
                 partitionLinkedList.add(currentId + 1, newPartition);
 
 
-                break;
+                return true;
 
             }
         }
-        if (!assignSuccess) {
-            System.out.println("Could not assign 作业" + job.id + ", skipping...");
 
-        }
+        System.out.println("Could not assign 作业" + job.id + ", skipping...");
+        return false;
+
 
     }
 
-    static void BestFitPartition(LinkedList<Partition> partitionLinkedList, Job job) {
+    static boolean BestFitPartition(LinkedList<Partition> partitionLinkedList, Job job) {
         Partition bestFitPartition = null;
         int bestFitIndex = -1;
         // 最佳适应算法
@@ -181,6 +194,7 @@ public class Partition implements Comparable<Partition> {
 
         if (bestFitPartition == null) {
             System.out.println("Could not assign 作业" + job.id + ", skipping...");
+            return false;
         } else {
             // 新分区，原分区一分为二成一个占用的分区和一个空闲的分区
             Partition newPartition = new Partition(bestFitPartition.partitionSize - job.requiredMemory, bestFitPartition.startAddress + job.requiredMemory);
@@ -189,39 +203,27 @@ public class Partition implements Comparable<Partition> {
             bestFitPartition.job = job;
 
             partitionLinkedList.add(bestFitIndex + 1, newPartition);
+            return true;
         }
+
 
     }
 
     // 释放分区
-    static void releasePartition(LinkedList<Partition> partitionLinkedList, Job job) {
+    static void releasePartition(LinkedList<Partition> partitionLinkedList, Job releasingJob) {
         Scanner sc = new Scanner(System.in);
         for (Partition currentPartition : partitionLinkedList) {
 
-            if (currentPartition.job.id  == job.id) {
-//                System.out.print(currentPartition + ",需要释放的空间大小为:");
-                int releaseSpace = sc.nextInt();
-                if (currentPartition.partitionSize == releaseSpace) {
-                    currentPartition.job = null;
-                    currentPartition.assigned = false;
-//                } else if (releaseSpace < currentPartition.partitionSize) {
-//                    // 实现了部分内存释放
-//                    int currentId = partitionLinkedList.lastIndexOf(currentPartition);
-//                    Partition newPartition = new Partition(currentPartition.partitionSize - releaseSpace, currentPartition.startAddress + releaseSpace);
-//                    currentPartition.partitionSize = releaseSpace;
-//                    currentPartition.assigned = false;
-//                    currentPartition.processId = -1;
-//                    newPartition.processId = process.id;
-//                    newPartition.assigned = true;
-//                    // 又是一分为二
-//                    partitionLinkedList.add(currentId + 1, newPartition);
-//
-//                    break;
-                }
-                else {
-                    System.out.println("ERROR: Illegal release size.");
-                }
+            if (currentPartition.job == releasingJob) {
 
+                currentPartition.job = null;
+                currentPartition.assigned = false;
+
+
+                MergeFreePartition(partitionLinkedList);
+                MergeFreePartition(partitionLinkedList);
+
+                return;
             }
         }
 
@@ -233,5 +235,3 @@ public class Partition implements Comparable<Partition> {
 
 
 
-
-}

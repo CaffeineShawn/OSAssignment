@@ -3,11 +3,13 @@ import java.util.*;
 public class Job{
     int id;
     int processTime;
+    double weightedTurnAroundTime;
     int requiredMemory;
     int requiredTape;
     Time startTime;
     Time finishedTime;
     Time arriveTime;
+
     static Memory memory = new Memory(100);
     static Tape tape = new Tape(4);
     static int choice1;
@@ -26,15 +28,15 @@ public class Job{
 
     @Override
     public String toString() {
-        return "作业" + this.id + ", 到达时间:" + this.arriveTime + ", 开始时间:" + this.startTime + ", 结束时间:" + this.finishedTime + ", 周转时间:" + (this.finishedTime.allMinutes - this.arriveTime.allMinutes);
+        return "作业" + this.id + ", 到达时间:" + this.arriveTime + ", 开始时间:" + this.startTime + ", 结束时间:" + this.finishedTime + ", 周转时间:" + (this.finishedTime.allMinutes - this.arriveTime.allMinutes) +", 带权周转时间:" + (this.weightedTurnAroundTime);
     }
 
     public static void main(String[] args) {
         Time currentTime = new Time("10:00");
         Job job1 = new Job(1, "10:00", 25, 15, 2);
         Job job2 = new Job(2, "10:20", 30, 60, 1);
-        Job job3 = new Job(3, "10:30", 10, 50, 3);
-        Job job4 = new Job(4, "10:35", 20, 10, 2);
+        Job job3 = new Job(3, "10:30", 10, 10, 1);
+        Job job4 = new Job(4, "10:35", 20, 30, 3);
         Job job5 = new Job(5, "10:40", 15, 30, 2);
 
         Job[] jobs = new Job[5];
@@ -84,16 +86,18 @@ public class Job{
 
 
         double turnAroundTime = 0;
-
+        double weightedTurnAroundTime = 0;
 
         Arrays.sort(jobs, Comparator.comparingInt(o -> o.id));
 
         for (Job job : jobs) {
             System.out.println(job);
             turnAroundTime += job.finishedTime.allMinutes - job.arriveTime.allMinutes;
+            weightedTurnAroundTime += job.weightedTurnAroundTime;
         }
 
         System.out.println("平均周转时间为: " + turnAroundTime / (jobs.length));
+        System.out.println("平均带权周转时间为: " + weightedTurnAroundTime / (jobs.length));
 
 
     }
@@ -126,12 +130,12 @@ public class Job{
     }
 
     static void assignResource(Job job) {
-        memory.assignMemory(job.requiredMemory);
+        memory.assignMemory(job.requiredMemory,job);
         tape.assignTape(job.requiredTape);
     }
 
     static void releaseResource(Job job) {
-        memory.releaseMemory(job.requiredMemory);
+        memory.releaseMemory(job.requiredMemory,job);
         tape.releaseTape(job.requiredTape);
     }
 
@@ -236,6 +240,7 @@ public class Job{
             Job finishedJob = findJobById(jobs,releaseJobId);
             finishedJob.finishedTime = new Time(currentTime.allMinutes);
             finishedJob.startTime = new Time(readyQueue.poll().startTime.allMinutes);
+            finishedJob.weightedTurnAroundTime = (finishedJob.finishedTime.allMinutes -  finishedJob.arriveTime.allMinutes) / (double) finishedJob.processTime;
             releaseResource(finishedJob);
 
             System.out.println(tape);

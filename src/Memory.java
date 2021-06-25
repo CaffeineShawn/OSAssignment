@@ -16,35 +16,40 @@ public class Memory {
     }
 
     public boolean checkMemory(int requiredMemory) {
-        if (requiredMemory < this.free) {
-            return false;
-        }
+//        if (requiredMemory >= this.free) {
+//            return true;
+//        }
         for (Partition partition : partitionLinkedList) {
-            if (partition.partitionSize >= requiredMemory) {
+            if (partition.partitionSize >= requiredMemory && partition.assigned == false) {
                 return true;
             }
         }
+
+
         return false;
         
     }
     
-    public void assignMemory(int assignMemory) {
+    public void assignMemory(int assignMemory,Job job) {
 
-        for (Partition partition : partitionLinkedList) {
-            
-        }
+
+        Partition.FirstFitPartition(partitionLinkedList, job);
+
+
         this.free -= assignMemory;
         
         
     }
 
-    public void releaseMemory(int releaseMemory) {
+    public void releaseMemory(int releaseMemory,Job job) {
         this.free += releaseMemory;
+        Partition.releasePartition(partitionLinkedList,job);
     }
 
     @Override
     public String toString() {
-        return "- 共有" + total + "KB内存, 当前空闲" + free + "KB";
+        return "- 共有" + total + "KB内存, 当前空闲" + free + "KB\n"
+                ;
     }
 
 
